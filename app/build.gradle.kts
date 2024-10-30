@@ -71,6 +71,14 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
-    implementation("com.google.firebase:firebase-analytics")
-}
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    
+
+    implementation ("com.google.firebase:firebase-firestore-ktx")
+    implementation ("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation ("com.google.zxing:core:3.4.1")
+    }
+
+
+
