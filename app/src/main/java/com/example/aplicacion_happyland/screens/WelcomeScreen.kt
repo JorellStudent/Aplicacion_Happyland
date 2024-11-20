@@ -96,7 +96,7 @@ fun WelcomeScreen(navController: NavController) {
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Continúa con Google", fontSize = 16.sp)
+                    Text(text = "Continúa con Google!", fontSize = 16.sp)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
