@@ -2,17 +2,31 @@
 
 package com.example.aplicacion_happyland.screens
 
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,7 +40,6 @@ import androidx.navigation.NavController
 import com.example.aplicacion_happyland.R
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.zxing.integration.android.IntentIntegrator
-import java.util.*
 
 @Composable
 fun AddCardScreen(navController: NavController) {
@@ -34,6 +47,7 @@ fun AddCardScreen(navController: NavController) {
     val context = LocalContext.current
     val db = FirebaseFirestore.getInstance()
 
+    // QR Launcher para escanear la tarjeta
     val qrLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -72,7 +86,7 @@ fun AddCardScreen(navController: NavController) {
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Agregar Tarjeta",
+                    text = "Cargar o Buscar Tarjeta",
                     fontSize = 28.sp,
                     color = Color.White,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -111,16 +125,29 @@ fun AddCardScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Botón para cargar o buscar la tarjeta en Firebase
                 Button(
                     onClick = {
                         if (cardNumber.isEmpty()) {
                             Toast.makeText(context, "Por favor ingresa un número de tarjeta", Toast.LENGTH_SHORT).show()
                         } else {
-                            saveCardToFirestore(cardNumber, db, context) {
-                                navController.navigate("home") {
-                                    popUpTo("addcard") { inclusive = true }
+                            // Busca la tarjeta en Firebase
+                            db.collection("Tarjetas").document(cardNumber).get()
+                                .addOnSuccessListener { document ->
+                                    if (document != null && document.exists()) {
+                                        // Si la tarjeta existe, muestra el mensaje y navega al HomeScreen
+                                        Toast.makeText(context, "Tarjeta encontrada", Toast.LENGTH_SHORT).show()
+                                        navController.navigate("home") {
+                                            popUpTo("addcard") { inclusive = true }
+                                        }
+                                    } else {
+                                        // Si no se encuentra, muestra un mensaje de error
+                                        Toast.makeText(context, "Tarjeta no encontrada o número incorrecto", Toast.LENGTH_SHORT).show()
+                                    }
                                 }
-                            }
+                                .addOnFailureListener {
+                                    Toast.makeText(context, "Error al buscar la tarjeta", Toast.LENGTH_SHORT).show()
+                                }
                         }
                     },
                     modifier = Modifier
@@ -129,39 +156,14 @@ fun AddCardScreen(navController: NavController) {
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                 ) {
-                    Text("Guardar Tarjeta", fontSize = 18.sp, color = Color.White)
+                    Text("Cargar o Buscar Tarjeta", fontSize = 18.sp, color = Color.White)
                 }
             }
         }
     }
 }
 
-fun saveCardToFirestore(
-    cardNumber: String,
-    db: FirebaseFirestore,
-    context: android.content.Context,
-    onSuccess: () -> Unit
-) {
-    val cardData = hashMapOf(
-        "numero" to cardNumber,
-        "saldoEfectivo" to 0.0,
-        "saldoBonus" to 0.0,
-        "tokens" to 0,
-        "tickets" to 0,
-        "fechaCreacion" to Date()
-    )
-
-    db.collection("Tarjetas").document(cardNumber).set(cardData)
-        .addOnSuccessListener {
-            Toast.makeText(context, "Tarjeta guardada exitosamente", Toast.LENGTH_SHORT).show()
-            onSuccess()
-        }
-        .addOnFailureListener { e ->
-            Toast.makeText(context, "Error al guardar la tarjeta: ${e.message}", Toast.LENGTH_SHORT).show()
-            Log.e("AddCardScreen", "Error al guardar la tarjeta", e)
-        }
-}
-
+// Función para formatear el número de tarjeta
 fun formatCardNumber(input: String): String {
     val cleanInput = input.replace("-", "").take(16)
     val formatted = StringBuilder()

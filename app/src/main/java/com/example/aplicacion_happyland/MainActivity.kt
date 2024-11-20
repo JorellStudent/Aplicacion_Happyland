@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.aplicacion_happyland.screens.AddCardScreen
+import com.example.aplicacion_happyland.screens.BirthdayReservationScreen
 import com.example.aplicacion_happyland.screens.HomeScreen
 import com.example.aplicacion_happyland.screens.LoginScreen
 import com.example.aplicacion_happyland.screens.RegisterScreen
@@ -34,5 +35,6 @@ fun AppNavigator() {
         composable("register") { RegisterScreen(navController) }
         composable("home") { HomeScreen(navController) }
         composable("addcard") { AddCardScreen(navController) }
+        composable("birthdayReservation") { BirthdayReservationScreen(navController) }
     }
 }
