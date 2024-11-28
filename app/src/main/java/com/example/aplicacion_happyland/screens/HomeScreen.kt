@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,110 +29,121 @@ import androidx.navigation.NavHostController
 import com.example.aplicacion_happyland.R
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import java.text.NumberFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavHostController) {
+fun HomeScreen(
+    navController: NavHostController,
+    cardNumber: String? = null,
+    onAddCardClick: () -> Unit
+) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
-    var cardData by remember { mutableStateOf<Map<String, Any>?>(null) }
-    val cart = remember { mutableStateListOf<Pair<String, Double>>() }
+
+    // Estados para datos de la tarjeta
+    var userName by remember { mutableStateOf("Desconocido") }
+    var userLastName by remember { mutableStateOf("Desconocido") }
+    var saldoEfectivo by remember { mutableStateOf(0) }
+    var saldoBonus by remember { mutableStateOf(0) }
+    var tickets by remember { mutableStateOf(0) }
+    var tokens by remember { mutableStateOf(0) }
+    var isLoading by remember { mutableStateOf(cardNumber != null) }
+
     val db = FirebaseFirestore.getInstance()
     val context = LocalContext.current
 
-    // Cargar datos de la tarjeta desde Firebase Firestore
-    LaunchedEffect(Unit) {
-        val cardNumber = "1234-5678-9101-1121"
-        db.collection("Tarjetas").document(cardNumber).get()
-            .addOnSuccessListener { document ->
-                if (document != null && document.exists()) {
-                    cardData = document.data
-                } else {
+    // Buscar tarjeta en Firebase
+    LaunchedEffect(cardNumber) {
+        if (!cardNumber.isNullOrEmpty()) {
+            isLoading = true
+            try {
+                val snapshot = db.collection("tarjetas").whereEqualTo("codigo", cardNumber).get().await()
+                if (snapshot.isEmpty) {
                     Toast.makeText(context, "Tarjeta no encontrada", Toast.LENGTH_SHORT).show()
+                } else {
+                    val cardData = snapshot.documents[0].data
+                    userName = cardData?.get("nombre") as? String ?: "Desconocido"
+                    userLastName = cardData?.get("apellido") as? String ?: "Desconocido"
+                    saldoEfectivo = (cardData?.get("saldoEfectivo") as? Long)?.toInt() ?: 0
+                    saldoBonus = (cardData?.get("saldoBonus") as? Long)?.toInt() ?: 0
+                    tickets = (cardData?.get("tickets") as? Long)?.toInt() ?: 0
+                    tokens = (cardData?.get("tokens") as? Long)?.toInt() ?: 0
+
+                    Toast.makeText(context, "Tarjeta cargada exitosamente", Toast.LENGTH_SHORT).show()
                 }
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error al cargar la tarjeta: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                isLoading = false
             }
-            .addOnFailureListener {
-                Toast.makeText(context, "Error al cargar la tarjeta", Toast.LENGTH_SHORT).show()
-            }
+        }
     }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        drawerContent = {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Gray)
-                    .padding(16.dp)
-            ) {
-                Text("Perfil", color = Color.White, fontSize = 20.sp, modifier = Modifier.clickable { /* Navegar a perfil */ })
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Configuración", color = Color.White, fontSize = 20.sp, modifier = Modifier.clickable { /* Navegar a configuración */ })
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Cerrar Sesión", color = Color.White, fontSize = 20.sp, modifier = Modifier.clickable { /* Cerrar sesión */ })
-            }
-        }
+        drawerContent = { DrawerContent() }
     ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Happyland", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = Color.White) },
-                    navigationIcon = {
-                        IconButton(onClick = { coroutineScope.launch { drawerState.open() } }) {
-                            Icon(Icons.Filled.Menu, contentDescription = "Menu", tint = Color.White)
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = { /* Navegar al perfil */ }) {
-                            Image(
-                                painter = painterResource(id = R.drawable.usuario_icono),
-                                contentDescription = "Perfil",
-                                modifier = Modifier.size(48.dp)
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF000000))
-                )
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
-        ) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                // Fondo de imagen
-                Image(
-                    painter = painterResource(id = R.drawable.general_fondo),
-                    contentDescription = "Fondo de pantalla",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-
-                Column(
+        } else {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = {
+                            Text(
+                                "Happyland",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 24.sp,
+                                color = Color.White
+                            )
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = { coroutineScope.launch { drawerState.open() } }) {
+                                Icon(Icons.Filled.Menu, contentDescription = "Menú", tint = Color.White)
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF000000))
+                    )
+                }
+            ) { innerPadding ->
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(16.dp)
+                        .padding(innerPadding)
                 ) {
-                    CardDetailsSection(navController, cardData)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    BirthdaySection(navController)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    TicketPurchaseOptions(cart) { ticket ->
-                        cart.add(ticket)
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    ExclusiveRechargeCarousel(cart) { recharge ->
-                        cart.add(recharge)
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    if (cart.isNotEmpty()) {
-                        CheckoutSection(cart) { payAmount ->
-                            handlePayment(payAmount, cardData, db, context) {
-                                cart.clear()
-                                Toast.makeText(context, "Pago exitoso", Toast.LENGTH_SHORT).show()
-                            }
-                        }
+                    // Fondo de pantalla
+                    Image(
+                        painter = painterResource(id = R.drawable.general_fondo),
+                        contentDescription = "Fondo de pantalla",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp)
+                    ) {
+                        CardDetailsSection(
+                            cardNumber = cardNumber ?: "0000-0000-0000-0000",
+                            userName = "$userName $userLastName",
+                            saldoEfectivo = saldoEfectivo,
+                            saldoBonus = saldoBonus,
+                            tickets = tickets,
+                            tokens = tokens,
+                            onAddCardClick = onAddCardClick
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        BirthdaySection(navController)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        TicketPurchaseOptions()
+                        Spacer(modifier = Modifier.height(16.dp))
+                        ExclusiveRechargeCarousel()
                     }
                 }
             }
@@ -141,37 +153,73 @@ fun HomeScreen(navController: NavHostController) {
 
 @Composable
 fun CardDetailsSection(
-    navController: NavHostController,
-    cardData: Map<String, Any>?
+    cardNumber: String,
+    userName: String,
+    saldoEfectivo: Int,
+    saldoBonus: Int,
+    tickets: Int,
+    tokens: Int,
+    onAddCardClick: () -> Unit
 ) {
+    val numberFormat = NumberFormat.getNumberInstance()
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color(0xFF4A148C), RoundedCornerShape(12.dp))
             .padding(16.dp)
-            .clickable { navController.navigate("addcard") }
     ) {
-        Text(text = "Nombre del Usuario", color = Color.White, fontWeight = FontWeight.Bold)
         Text(
-            text = "N° TARJETA: ${cardData?.get("numero") as? String ?: "0000-0000-0000-0000"}",
+            text = "Usuario: $userName",
             color = Color.White,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp
+        )
+        Text(
+            text = "N° TARJETA: $cardNumber",
+            color = Color.White,
+            fontWeight = FontWeight.Medium,
+            fontSize = 18.sp
         )
         Spacer(modifier = Modifier.height(8.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column { Text("Saldo Efectivo: ${cardData?.get("saldoEfectivo") ?: 0.0}", color = Color.White) }
-            Column { Text("Bonus: ${cardData?.get("saldoBonus") ?: 0.0}", color = Color.White) }
+            Column { Text("Saldo Efectivo: ${numberFormat.format(saldoEfectivo)}", color = Color.White) }
+            Column { Text("Bonus: ${numberFormat.format(saldoBonus)}", color = Color.White) }
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column { Text("eTickets: ${cardData?.get("tickets") ?: 0}", color = Color.White) }
-            Column { Text("Tokens: ${cardData?.get("tokens") ?: 0}", color = Color.White) }
+            Column { Text("eTickets: ${numberFormat.format(tickets)}", color = Color.White) }
+            Column { Text("Tokens: ${numberFormat.format(tokens)}", color = Color.White) }
         }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = onAddCardClick,
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E88E5))
+        ) {
+            Icon(Icons.Filled.Add, contentDescription = null, tint = Color.White)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = "Agregar Tarjeta", color = Color.White)
+        }
+    }
+}
+
+@Composable
+fun DrawerContent() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Gray)
+            .padding(16.dp)
+    ) {
+        Text("Perfil", color = Color.White, fontSize = 20.sp, modifier = Modifier.clickable { /* Navegar a perfil */ })
+        Spacer(modifier = Modifier.height(8.dp))
+        Text("Configuración", color = Color.White, fontSize = 20.sp, modifier = Modifier.clickable { /* Navegar a configuración */ })
+        Spacer(modifier = Modifier.height(8.dp))
+        Text("Cerrar Sesión", color = Color.White, fontSize = 20.sp, modifier = Modifier.clickable { /* Cerrar sesión */ })
     }
 }
 
@@ -182,7 +230,7 @@ fun BirthdaySection(navController: NavHostController) {
             .fillMaxWidth()
             .background(Color(0xFF1E88E5), RoundedCornerShape(8.dp))
             .padding(16.dp)
-            .clickable { navController.navigate("birthdayReservation") }, // Navegar a BirthdayReservationScreen
+            .clickable { navController.navigate("birthdayReservation") },
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -194,14 +242,13 @@ fun BirthdaySection(navController: NavHostController) {
     }
 }
 
-
 @Composable
-fun ExclusiveRechargeCarousel(cart: MutableList<Pair<String, Double>>, onAddToCart: (Pair<String, Double>) -> Unit) {
+fun ExclusiveRechargeCarousel() {
     val rechargeOptions = listOf(
-        Triple("Recarga $35.000", "Bonus 22.000", 35000.0),
-        Triple("Recarga $25.000", "Bonus 15.000", 25000.0),
-        Triple("Recarga $20.000", "Bonus 12.000", 20000.0),
-        Triple("Recarga $15.000", "Bonus 6.000", 15000.0)
+        Triple("Recarga $35.000", "Bonus 22.000", 35000),
+        Triple("Recarga $25.000", "Bonus 15.000", 25000),
+        Triple("Recarga $20.000", "Bonus 12.000", 20000),
+        Triple("Recarga $15.000", "Bonus 6.000", 15000)
     )
 
     LazyRow(
@@ -211,15 +258,26 @@ fun ExclusiveRechargeCarousel(cart: MutableList<Pair<String, Double>>, onAddToCa
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(rechargeOptions) { (recarga, bonus, precio) ->
-            RechargeOption(recarga, bonus, precio, Color.Gray) {
-                onAddToCart(recarga to precio)
+            Column(
+                modifier = Modifier
+                    .width(150.dp)
+                    .background(Color.Gray, RoundedCornerShape(8.dp))
+                    .padding(8.dp)
+                    .clickable { /* Manejo de clic aquí */ },
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(recarga, color = Color.White, fontWeight = FontWeight.Bold)
+                Text("+", color = Color.White, fontWeight = FontWeight.Bold)
+                Text(bonus, color = Color.White, fontWeight = FontWeight.Bold)
+                Text("=", color = Color.White, fontWeight = FontWeight.Bold)
+                Text("$precio", color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
     }
 }
 
 @Composable
-fun TicketPurchaseOptions(cart: MutableList<Pair<String, Double>>, onAddToCart: (Pair<String, Double>) -> Unit) {
+fun TicketPurchaseOptions() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -228,82 +286,7 @@ fun TicketPurchaseOptions(cart: MutableList<Pair<String, Double>>, onAddToCart: 
     ) {
         Text("COMPRA DE TICKETS", fontWeight = FontWeight.Bold, color = Color.Black, fontSize = 18.sp)
         Spacer(modifier = Modifier.height(8.dp))
-        TicketOption("500 e-tickets", "$3.000", 3000.0, Color.Green) {
-            onAddToCart("500 e-tickets" to 3000.0)
-        }
-        TicketOption("1000 e-tickets", "$4.500", 4500.0, Color.Blue) {
-            onAddToCart("1000 e-tickets" to 4500.0)
-        }
+        Text("500 e-tickets - $3.000", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Green)
+        Text("1000 e-tickets - $4.500", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Blue)
     }
-}
-
-@Composable
-fun RechargeOption(recarga: String, bonus: String, precio: Double, color: Color, onAddToCart: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .width(150.dp)
-            .background(color, RoundedCornerShape(8.dp))
-            .padding(8.dp)
-            .clickable { onAddToCart() },
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(recarga, color = Color.White, fontWeight = FontWeight.Bold)
-        Text("+", color = Color.White, fontWeight = FontWeight.Bold)
-        Text(bonus, color = Color.White, fontWeight = FontWeight.Bold)
-        Text("=", color = Color.White, fontWeight = FontWeight.Bold)
-        Text("$$precio", color = Color.White, fontWeight = FontWeight.Bold)
-    }
-}
-
-@Composable
-fun TicketOption(etickets: String, price: String, value: Double, color: Color, onAddToCart: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .background(color, RoundedCornerShape(8.dp))
-            .padding(8.dp)
-            .clickable { onAddToCart() },
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(etickets, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-        Text(price, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-    }
-}
-
-@Composable
-fun CheckoutSection(cart: List<Pair<String, Double>>, onPay: (Double) -> Unit) {
-    val total = cart.sumOf { it.second }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFF4CAF50), RoundedCornerShape(8.dp))
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Total a Pagar: $$total", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = { onPay(total) }, modifier = Modifier.fillMaxWidth().height(48.dp)) {
-            Text("PAGAR $$total", fontSize = 18.sp, color = Color.White)
-        }
-    }
-}
-
-fun handlePayment(
-    amount: Double,
-    cardData: Map<String, Any>?,
-    db: FirebaseFirestore,
-    context: android.content.Context,
-    onSuccess: () -> Unit
-) {
-    val cardNumber = cardData?.get("numero") as? String ?: return
-    db.collection("Tarjetas").document(cardNumber).update("saldoEfectivo", amount)
-        .addOnSuccessListener {
-            Toast.makeText(context, "Pago realizado con éxito", Toast.LENGTH_SHORT).show()
-            onSuccess()
-        }
-        .addOnFailureListener {
-            Toast.makeText(context, "Error en el pago", Toast.LENGTH_SHORT).show()
-        }
 }

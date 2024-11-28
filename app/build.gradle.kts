@@ -6,12 +6,13 @@ plugins {
 
 android {
     namespace = "com.example.aplicacion_happyland"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.aplicacion_happyland"
         minSdk = 24
-        targetSdk = 34
+        //noinspection OldTargetApi
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -75,9 +76,14 @@ dependencies {
     implementation(libs.firebase.analytics)
     
 
-    implementation ("com.google.firebase:firebase-firestore-ktx")
-    implementation ("com.journeyapps:zxing-android-embedded:4.3.0")
-    implementation ("com.google.zxing:core:3.4.1")
+    implementation (libs.firebase.firestore.ktx)
+    implementation (libs.zxing.android.embedded)
+    implementation (libs.core)
+    implementation (libs.androidx.core.ktx.v1150)
+    implementation (libs.firebase.auth)
+    implementation (libs.play.services.auth)
+    implementation(platform(libs.firebase.bom.v3360))
+    implementation (libs.androidx.lifecycle.runtime.ktx.v287)
     }
 
 
