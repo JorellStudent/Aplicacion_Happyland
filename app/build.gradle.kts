@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.firebase.auth.ktx)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.ui.test.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -74,7 +75,7 @@ dependencies {
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
-    
+
 
     implementation (libs.firebase.firestore.ktx)
     implementation (libs.zxing.android.embedded)
@@ -84,7 +85,4 @@ dependencies {
     implementation (libs.play.services.auth)
     implementation(platform(libs.firebase.bom.v3360))
     implementation (libs.androidx.lifecycle.runtime.ktx.v287)
-    }
-
-
-
+}

@@ -36,7 +36,7 @@ fun WelcomeScreen(navController: NavController) {
         ) {
             // Imagen de fondo
             Image(
-                painter = painterResource(id = R.drawable.inicio_fondo),
+                painter = painterResource(id = R.drawable.general_fondo),
                 contentDescription = "Fondo",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()

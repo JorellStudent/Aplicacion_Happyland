@@ -24,12 +24,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // Configuración de NFC
-        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
-        if (nfcAdapter == null) {
-            Toast.makeText(this, "NFC no está disponible en este dispositivo", Toast.LENGTH_LONG).show()
-        } else if (!nfcAdapter!!.isEnabled) {
-            Toast.makeText(this, "Por favor, activa NFC en la configuración", Toast.LENGTH_LONG).show()
-        }
+        configureNfcAdapter()
 
         setContent {
             Aplicacion_HappylandTheme {
@@ -40,7 +35,34 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Habilitar Foreground Dispatch para NFC
+        enableNfcForegroundDispatch()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        disableNfcForegroundDispatch()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.action == NfcAdapter.ACTION_TAG_DISCOVERED || intent.action == NfcAdapter.ACTION_NDEF_DISCOVERED) {
+            handleNfcIntent(intent)
+        }
+    }
+
+    private fun configureNfcAdapter() {
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
+        when {
+            nfcAdapter == null -> {
+                Toast.makeText(this, "NFC no está disponible en este dispositivo", Toast.LENGTH_LONG).show()
+            }
+            !nfcAdapter!!.isEnabled -> {
+                Toast.makeText(this, "Por favor, activa NFC en la configuración", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun enableNfcForegroundDispatch() {
         val pendingIntent = PendingIntent.getActivity(
             this, 0,
             Intent(this, javaClass).apply { addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP) },
@@ -49,48 +71,45 @@ class MainActivity : ComponentActivity() {
         nfcAdapter?.enableForegroundDispatch(this, pendingIntent, null, null)
     }
 
-    override fun onPause() {
-        super.onPause()
-        // Deshabilitar Foreground Dispatch
+    private fun disableNfcForegroundDispatch() {
         nfcAdapter?.disableForegroundDispatch(this)
     }
 
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        if (intent.action == NfcAdapter.ACTION_TAG_DISCOVERED || intent.action == NfcAdapter.ACTION_NDEF_DISCOVERED) {
-            NfcUtils.processNfcTag(
-                intent = intent,
-                db = FirebaseFirestore.getInstance(),
-                context = this,
-                onSuccess = { tagData ->
-                    Toast.makeText(this, "Tarjeta detectada: $tagData", Toast.LENGTH_SHORT).show()
-                    FirebaseFirestore.getInstance().collection("tarjetas")
-                        .whereEqualTo("codigo", tagData)
-                        .get()
-                        .addOnSuccessListener { documents ->
-                            if (!documents.isEmpty) {
-                                // Llama a HomeScreen directamente sin pasar parámetros innecesarios
-                                setContent {
-                                    Aplicacion_HappylandTheme {
-                                        AppNavigator(tagData)
-                                    }
-                                }
-                            } else {
-                                Toast.makeText(this, "Tarjeta no encontrada en Firebase", Toast.LENGTH_SHORT).show()
-                            }
+    private fun handleNfcIntent(intent: Intent) {
+        NfcUtils.processNfcTag(
+            intent = intent,
+            db = FirebaseFirestore.getInstance(),
+            context = this,
+            onSuccess = { tagData ->
+                Toast.makeText(this, "Tarjeta detectada: $tagData", Toast.LENGTH_SHORT).show()
+                navigateToHomeWithCard(tagData)
+            },
+            onError = { errorMessage ->
+                Toast.makeText(this, "Error: $errorMessage", Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
+    private fun navigateToHomeWithCard(tagData: String) {
+        FirebaseFirestore.getInstance().collection("tarjetas")
+            .whereEqualTo("codigo", tagData)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (!documents.isEmpty) {
+                    setContent {
+                        Aplicacion_HappylandTheme {
+                            AppNavigator(cardNumber = tagData)
                         }
-                        .addOnFailureListener {
-                            Toast.makeText(this, "Error al buscar tarjeta en Firebase", Toast.LENGTH_SHORT).show()
-                        }
-                },
-                onError = { errorMessage ->
-                    Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Toast.makeText(this, "Tarjeta no encontrada en Firebase", Toast.LENGTH_SHORT).show()
                 }
-            )
-        }
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Error al buscar tarjeta en Firebase", Toast.LENGTH_SHORT).show()
+            }
     }
 }
-
 
 @Composable
 fun AppNavigator(cardNumber: String? = null) {
@@ -104,7 +123,15 @@ fun AppNavigator(cardNumber: String? = null) {
                 onAddCardClick = { navController.navigate("addcard") }
             )
         }
-        composable("addcard") { AddCardScreen(navController) }
-        composable("birthdayReservation") { BirthdayReservationScreen(navController) }
+        composable("addcard") {
+            AddCardScreen(navController)
+        }
+        composable("birthdayReservation") {
+            BirthdayReservationScreen(navController)
+        }
+        composable("calendar/{packageType}") { backStackEntry ->
+            val packageType = backStackEntry.arguments?.getString("packageType") ?: "UNKNOWN"
+            CalendarReservationScreen(navController, packageType)
+        }
     }
 }

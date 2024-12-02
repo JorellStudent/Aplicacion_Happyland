@@ -45,10 +45,10 @@ fun HomeScreen(
     // Estados para datos de la tarjeta
     var userName by remember { mutableStateOf("Desconocido") }
     var userLastName by remember { mutableStateOf("Desconocido") }
-    var saldoEfectivo by remember { mutableStateOf(0) }
-    var saldoBonus by remember { mutableStateOf(0) }
-    var tickets by remember { mutableStateOf(0) }
-    var tokens by remember { mutableStateOf(0) }
+    var saldoEfectivo by remember { mutableIntStateOf(0) }
+    var saldoBonus by remember { mutableIntStateOf(0) }
+    var tickets by remember { mutableIntStateOf(0) }
+    var tokens by remember { mutableIntStateOf(0) }
     var isLoading by remember { mutableStateOf(cardNumber != null) }
 
     val db = FirebaseFirestore.getInstance()
