@@ -32,12 +32,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.text.NumberFormat
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavHostController,
     cardNumber: String? = null,
-    onAddCardClick: () -> Unit
+    onAddCardClick: () -> Unit,
+    onLogoutClick: () -> Unit
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
@@ -83,7 +85,7 @@ fun HomeScreen(
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        drawerContent = { DrawerContent() }
+        drawerContent = { DrawerContent(navController, onLogoutClick) }
     ) {
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -117,7 +119,7 @@ fun HomeScreen(
                 ) {
                     // Fondo de pantalla
                     Image(
-                        painter = painterResource(id = R.drawable.general_fondo),
+                        painter = painterResource(id = R.drawable.fondocolor),
                         contentDescription = "Fondo de pantalla",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
@@ -144,6 +146,22 @@ fun HomeScreen(
                         TicketPurchaseOptions()
                         Spacer(modifier = Modifier.height(16.dp))
                         ExclusiveRechargeCarousel()
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Nuevo botón para ir a PrizesScreen
+                        Button(
+                            onClick = {
+                                if (cardNumber != null) {
+                                    navController.navigate("prizesScreen/$cardNumber/$tickets")
+                                } else {
+                                    Toast.makeText(context, "Tarjeta no detectada. Agrega una primero.", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Ver Premios", color = Color.White, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
@@ -208,7 +226,7 @@ fun CardDetailsSection(
 }
 
 @Composable
-fun DrawerContent() {
+fun DrawerContent(navController: NavHostController, onLogoutClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -219,7 +237,12 @@ fun DrawerContent() {
         Spacer(modifier = Modifier.height(8.dp))
         Text("Configuración", color = Color.White, fontSize = 20.sp, modifier = Modifier.clickable { /* Navegar a configuración */ })
         Spacer(modifier = Modifier.height(8.dp))
-        Text("Cerrar Sesión", color = Color.White, fontSize = 20.sp, modifier = Modifier.clickable { /* Cerrar sesión */ })
+        Text(
+            text = "Cerrar Sesión",
+            color = Color.White,
+            fontSize = 20.sp,
+            modifier = Modifier.clickable { onLogoutClick() }
+        )
     }
 }
 

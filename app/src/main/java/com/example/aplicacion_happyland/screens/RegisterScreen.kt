@@ -39,7 +39,7 @@ fun RegisterScreen(navController: NavController) {
         ) {
             // Imagen de fondo
             Image(
-                painter = painterResource(id = R.drawable.fondoburbujas), // Reemplaza con tu imagen
+                painter = painterResource(id = R.drawable.fondocolor), // Reemplaza con tu imagen
                 contentDescription = "Fondo",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()

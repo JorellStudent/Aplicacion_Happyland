@@ -9,9 +9,11 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.aplicacion_happyland.screens.*
 import com.example.aplicacion_happyland.ui.theme.Aplicacion_HappylandTheme
 import com.example.aplicacion_happyland.utils.NfcUtils
@@ -120,7 +122,12 @@ fun AppNavigator(cardNumber: String? = null) {
             HomeScreen(
                 navController = navController,
                 cardNumber = cardNumber,
-                onAddCardClick = { navController.navigate("addcard") }
+                onAddCardClick = { navController.navigate("addcard") },
+                onLogoutClick = {
+                    navController.navigate("welcome") {
+                        popUpTo("home") { inclusive = true } // Elimina el historial de navegación
+                    }
+                }
             )
         }
         composable("addcard") {
@@ -133,5 +140,26 @@ fun AppNavigator(cardNumber: String? = null) {
             val packageType = backStackEntry.arguments?.getString("packageType") ?: "UNKNOWN"
             CalendarReservationScreen(navController, packageType)
         }
+        composable(
+            route = "prizesScreen/{cardNumber}/{tickets}",
+            arguments = listOf(
+                navArgument("cardNumber") { type = NavType.StringType },
+                navArgument("tickets") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val cardNumberFromRoute = backStackEntry.arguments?.getString("cardNumber") ?: ""
+            val ticketsFromRoute = backStackEntry.arguments?.getInt("tickets") ?: 0
+            PrizesScreen(navController = navController, cardNumber = cardNumberFromRoute, ticketsIniciales = ticketsFromRoute)
+        }
+        composable("welcome") {
+            WelcomeScreen(navController)
+        }
+        composable("register") {
+            RegisterScreen(navController)
+        }
+        composable("login") {
+            LoginScreen(navController)
+        }
+
     }
 }

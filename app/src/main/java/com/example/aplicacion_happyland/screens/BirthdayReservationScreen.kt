@@ -61,7 +61,7 @@ fun BirthdayReservationScreen(navController: NavController) {
     Box(modifier = Modifier.fillMaxSize()) {
         // Fondo del CalendarReservationScreen
         Image(
-            painter = painterResource(id = R.drawable.general_fondo),
+            painter = painterResource(id = R.drawable.fondocolor),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()

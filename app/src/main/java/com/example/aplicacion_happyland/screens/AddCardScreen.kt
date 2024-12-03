@@ -69,7 +69,7 @@ fun AddCardScreen(navController: NavController) {
         ) {
             // Imagen de fondo
             Image(
-                painter = painterResource(id = R.drawable.general_fondo),
+                painter = painterResource(id = R.drawable.fondocolor),
                 contentDescription = "Fondo",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()

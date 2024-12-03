@@ -78,7 +78,7 @@ fun CalendarReservationScreen(navController: NavController, packageType: String)
             .background(Color(0xFF4CAF50))
     ) {
         Image(
-            painter = painterResource(id = R.drawable.general_fondo),
+            painter = painterResource(id = R.drawable.fondocolor),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
@@ -390,7 +390,7 @@ fun CalendarView(
                             .background(
                                 color = when {
                                     isReserved -> Color(0xFFFF6B6B)
-                                    date == selectedDate -> Color(0xFF4A90E2)
+                                    date == selectedDate -> Color(0xFFFFEB3B)
                                     else -> Color(0xFF8BC34A)
                                 },
                                 shape = androidx.compose.foundation.shape.RoundedCornerShape(50)
@@ -428,10 +428,6 @@ fun loadReservedDates(db: FirebaseFirestore, reservedDates: MutableList<String>)
             }
         }
 }
-
-
-
-
 
 @Composable
 fun InputField(label: String, value: String, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, onValueChange: (String) -> Unit) {
