@@ -1,4 +1,4 @@
-# Happyland App 🎢
+# Happyland App  🎢
 
 **Happyland App** es una aplicación móvil diseñada para mejorar la experiencia de los usuarios en las instalaciones de Happyland, permitiendo la gestión de tarjetas, compra de tickets, reservas de cumpleaños y el canje de premios directamente desde el dispositivo móvil.
 
