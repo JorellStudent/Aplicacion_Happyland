@@ -76,5 +76,4 @@
 5. **Ejecutar el proyecto**:
    - Abrir el proyecto en Android Studio.
    - Sincronizar dependencias.
-   - Ejecutar en un emulador o dispositivo físico.
-6. 
+   - Ejecutar en un emulador o dispositivo físico. 
