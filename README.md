@@ -12,7 +12,6 @@
 - **Compra de Tickets**: Ofrece opciones para adquirir tickets directamente desde la app.
 - **NFC Compatible**: Integración con tecnología NFC para lectura de tarjetas.
 - **Autenticación de Usuarios**: Registro, inicio de sesión y manejo de sesiones activas mediante Firebase Authentication.
-- **Soporte Offline (Pendiente)**: Optimización para funcionar parcialmente sin conexión.
 
 ---
 
@@ -97,19 +96,5 @@
 | PrizesScreen                                                                                     |
 
 ---
-
-## Contribuciones 🤝
-
-Las contribuciones son bienvenidas. Si deseas contribuir, por favor:
-1. Haz un fork del repositorio.
-2. Crea una nueva rama para tu funcionalidad (`feature/nueva-funcionalidad`).
-3. Realiza tus cambios y realiza un commit.
-4. Envía un pull request para revisión.
-
----
-
-## Licencia 📄
-
-Este proyecto está bajo la Licencia MIT. Consulta el archivo `LICENSE` para más detalles.
 
 
