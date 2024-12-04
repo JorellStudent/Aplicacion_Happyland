@@ -48,33 +48,40 @@ import java.nio.charset.Charset
 
 @Composable
 fun AddCardScreen(navController: NavController) {
+    // Estado para almacenar el número de tarjeta ingresado por el usuario
     var codigo by remember { mutableStateOf("") }
+
+    // Contexto y referencias para la actividad y Firebase
     val context = LocalContext.current
     val activity = context as androidx.activity.ComponentActivity
     val db = FirebaseFirestore.getInstance()
+
+    // Adaptador NFC para habilitar la lectura de tarjetas
     val nfcAdapter: NfcAdapter? = NfcAdapter.getDefaultAdapter(context)
 
-    // Mostrar mensaje si NFC no está disponible
+    // Mostrar mensaje al usuario si NFC no está disponible en el dispositivo
     LaunchedEffect(nfcAdapter) {
         if (nfcAdapter == null) {
             Toast.makeText(context, "NFC no está disponible en este dispositivo", Toast.LENGTH_LONG).show()
         }
     }
 
+    // Estructura principal de la pantalla
     Scaffold { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Transparent)
+                .background(Color.Transparent) // Fondo transparente
         ) {
             // Imagen de fondo
             Image(
-                painter = painterResource(id = R.drawable.general_fondo),
+                painter = painterResource(id = R.drawable.fondocolor),
                 contentDescription = "Fondo",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
 
+            // Contenido principal
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -83,6 +90,7 @@ fun AddCardScreen(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+                // Título de la pantalla
                 Text(
                     text = "Buscar Tarjeta",
                     fontSize = 28.sp,
@@ -90,26 +98,27 @@ fun AddCardScreen(navController: NavController) {
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // Campo para ingresar el número de tarjeta
+                // Campo de texto para ingresar el número de tarjeta
                 OutlinedTextField(
                     value = codigo,
-                    onValueChange = { codigo = formatCardNumber(it) },
+                    onValueChange = { codigo = formatCardNumber(it) }, // Formatear automáticamente
                     label = { Text("Número de Tarjeta") },
-                    placeholder = { Text("0000-0000-0000-0000") },
+                    placeholder = { Text("0000-0000-0000-0000") }, // Formato esperado
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 16.dp),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(12.dp), // Esquinas redondeadas
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Botón para buscar la tarjeta
+                // Botón para buscar la tarjeta ingresada
                 Button(
                     onClick = {
                         if (isCardNumberValid(codigo)) {
+                            // Validar y buscar la tarjeta en Firebase
                             fetchCardData(codigo, db, context, navController)
                         } else {
                             Toast.makeText(context, "Número de tarjeta inválido", Toast.LENGTH_SHORT).show()
@@ -119,7 +128,7 @@ fun AddCardScreen(navController: NavController) {
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)) // Color verde
                 ) {
                     Text("Buscar Tarjeta", fontSize = 18.sp, color = Color.White)
                 }
@@ -127,19 +136,21 @@ fun AddCardScreen(navController: NavController) {
         }
     }
 
-    // Configurar NFC para leer tarjetas
+    // Habilitar el lector NFC para leer tarjetas mientras la pantalla está activa
     DisposableEffect(Unit) {
         val pendingIntent = PendingIntent.getActivity(
             context,
             0,
             Intent(context, context::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP) // Evitar múltiples instancias
             },
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
         )
 
+        // Activar la escucha de tarjetas NFC
         nfcAdapter?.enableForegroundDispatch(activity, pendingIntent, null, null)
 
+        // Deshabilitar NFC cuando la pantalla no esté activa
         onDispose {
             try {
                 nfcAdapter?.disableForegroundDispatch(activity)
@@ -150,19 +161,19 @@ fun AddCardScreen(navController: NavController) {
     }
 }
 
-// Procesar la información de la tarjeta NFC
+// Procesar la información de una tarjeta NFC
 fun handleNfcIntent(intent: Intent, db: FirebaseFirestore, context: Context, navController: NavController) {
-    val tag = intent.getParcelableExtra<Tag>(NfcAdapter.EXTRA_TAG)
+    val tag = intent.getParcelableExtra<Tag>(NfcAdapter.EXTRA_TAG) // Obtener el tag NFC
     val ndef = Ndef.get(tag)
 
     if (ndef != null) {
         try {
             ndef.connect()
             val ndefMessage = ndef.ndefMessage
-            val text = ndefMessage.records[0].payload.toString(Charset.forName("UTF-8"))
+            val text = ndefMessage.records[0].payload.toString(Charset.forName("UTF-8")) // Leer contenido
             ndef.close()
 
-            // Comparar texto leído con Firebase
+            // Buscar la tarjeta en Firebase con el contenido leído
             fetchCardData(text, db, context, navController)
         } catch (e: Exception) {
             Toast.makeText(context, "Error al leer la tarjeta NFC", Toast.LENGTH_SHORT).show()
@@ -172,7 +183,7 @@ fun handleNfcIntent(intent: Intent, db: FirebaseFirestore, context: Context, nav
     }
 }
 
-// Función para buscar tarjeta en Firebase
+// Buscar tarjeta en Firebase
 fun fetchCardData(codigo: String, db: FirebaseFirestore, context: Context, navController: NavController) {
     db.collection("tarjetas").whereEqualTo("codigo", codigo).get()
         .addOnSuccessListener { documents ->
@@ -188,7 +199,7 @@ fun fetchCardData(codigo: String, db: FirebaseFirestore, context: Context, navCo
 
                     Toast.makeText(context, "Tarjeta encontrada: $userName", Toast.LENGTH_SHORT).show()
 
-                    // Navegar a HomeScreen con los datos
+                    // Navegar a la pantalla principal con los datos de la tarjeta
                     navController.navigate(
                         "home?codigo=$cardNumber&nombre=$userName&saldoEfectivo=$saldoEfectivo&saldoBonus=$saldoBonus&tickets=$tickets&tokens=$tokens"
                     ) {
@@ -206,13 +217,13 @@ fun fetchCardData(codigo: String, db: FirebaseFirestore, context: Context, navCo
         }
 }
 
-// Función para formatear el número de tarjeta
+// Formatear el número de tarjeta para mayor legibilidad
 fun formatCardNumber(input: String): String {
-    val cleanInput = input.replace("-", "").take(16)
-    return cleanInput.chunked(4).joinToString("-")
+    val cleanInput = input.replace("-", "").take(16) // Limitar a 16 dígitos
+    return cleanInput.chunked(4).joinToString("-") // Agrupar en bloques de 4 separados por guiones
 }
 
-// Validar si el número de tarjeta es válido
+// Validar si el número de tarjeta ingresado es válido
 fun isCardNumberValid(cardNumber: String): Boolean {
     return cardNumber.length == 19 && cardNumber.matches(Regex("\\d{4}-\\d{4}-\\d{4}-\\d{4}"))
 }

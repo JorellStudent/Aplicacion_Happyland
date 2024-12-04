@@ -27,10 +27,13 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException
 
 @Composable
 fun LoginScreen(navController: NavController) {
+    // Variables de estado para correo, contraseña, y visibilidad de carga
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
+
+    // Contexto y autenticación de Firebase
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
 
@@ -38,29 +41,33 @@ fun LoginScreen(navController: NavController) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Transparent)
+                .background(Color.Transparent) // Fondo transparente
         ) {
+            // Imagen de fondo
             Image(
-                painter = painterResource(id = R.drawable.fondoburbujas),
+                painter = painterResource(id = R.drawable.fondoburbujas), // Recurso de fondo
                 contentDescription = "Fondo",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
 
+            // Mostrar un indicador de carga si `isLoading` es verdadero
             if (isLoading) {
                 CircularProgressIndicator(
                     color = Color.White,
                     modifier = Modifier.align(Alignment.Center)
                 )
             } else {
+                // Contenido del formulario
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
-                        .padding(32.dp),
+                        .padding(32.dp), // Margen alrededor del formulario
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
+                    // Título principal
                     Text(
                         text = "Iniciar Sesión",
                         style = MaterialTheme.typography.headlineLarge,
@@ -71,6 +78,7 @@ fun LoginScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(32.dp))
 
+                    // Campo de entrada para el correo
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
@@ -84,6 +92,7 @@ fun LoginScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    // Campo de entrada para la contraseña
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
@@ -93,6 +102,7 @@ fun LoginScreen(navController: NavController) {
                             .background(Color.White, RoundedCornerShape(12.dp)),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true,
+                        // Mostrar/Ocultar la contraseña
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
                             val icon = if (passwordVisible) R.drawable.ocultar_icono else R.drawable.mostrar_icono
@@ -107,12 +117,14 @@ fun LoginScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
+                    // Botón para iniciar sesión
                     Button(
                         onClick = {
+                            // Validar campos no vacíos antes de proceder
                             if (email.isNotEmpty() && password.isNotEmpty()) {
-                                isLoading = true
+                                isLoading = true // Mostrar indicador de carga
                                 loginUser(email, password, auth, context, navController) {
-                                    isLoading = false
+                                    isLoading = false // Ocultar indicador después del proceso
                                 }
                             } else {
                                 Toast.makeText(context, "Debes rellenar todos los campos", Toast.LENGTH_SHORT).show()
@@ -120,15 +132,16 @@ fun LoginScreen(navController: NavController) {
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(28.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
+                            .height(56.dp), // Altura del botón
+                        shape = RoundedCornerShape(28.dp), // Esquinas redondeadas
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)) // Color azul del botón
                     ) {
                         Text("Iniciar Sesión", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    // Enlace para registrar una cuenta nueva
                     TextButton(onClick = { navController.navigate("register") }) {
                         Text(
                             text = "¿No tienes cuenta? Regístrate",
@@ -143,30 +156,34 @@ fun LoginScreen(navController: NavController) {
     }
 }
 
+// Función para iniciar sesión
 fun loginUser(
     email: String,
     password: String,
     auth: FirebaseAuth,
     context: android.content.Context,
     navController: NavController,
-    onComplete: () -> Unit
+    onComplete: () -> Unit // Callback para finalizar el proceso
 ) {
     auth.signInWithEmailAndPassword(email, password)
         .addOnCompleteListener { task ->
-            onComplete()
+            onComplete() // Llamar al callback cuando finalice
             if (task.isSuccessful) {
-                // Guardar estado de inicio de sesión
+                // Guardar el estado del inicio de sesión
                 saveLoginState(context, true)
                 Toast.makeText(context, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show()
+                // Navegar a la pantalla principal
                 navController.navigate("home") {
                     popUpTo("login") { inclusive = true }
                 }
             } else {
+                // Manejar errores de inicio de sesión
                 handleLoginError(task.exception, context)
             }
         }
 }
 
+// Función para manejar errores específicos de Firebase
 fun handleLoginError(
     exception: Exception?,
     context: android.content.Context

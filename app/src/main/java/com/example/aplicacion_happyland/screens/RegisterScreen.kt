@@ -24,14 +24,18 @@ import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun RegisterScreen(navController: NavController) {
+    // Variables de estado para capturar los datos del usuario
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
-    var confirmPasswordVisible by remember { mutableStateOf(false) }
+    var passwordVisible by remember { mutableStateOf(false) } // Estado para mostrar/ocultar la contraseña
+    var confirmPasswordVisible by remember { mutableStateOf(false) } // Estado para mostrar/ocultar confirmación
+
+    // Obtenemos el contexto y la instancia de FirebaseAuth
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
 
+    // Estructura principal de la pantalla
     Scaffold { innerPadding ->
         Box(
             modifier = Modifier
@@ -39,7 +43,7 @@ fun RegisterScreen(navController: NavController) {
         ) {
             // Imagen de fondo
             Image(
-                painter = painterResource(id = R.drawable.fondoburbujas), // Reemplaza con tu imagen
+                painter = painterResource(id = R.drawable.fondocolor), // Imagen de fondo
                 contentDescription = "Fondo",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
@@ -54,6 +58,7 @@ fun RegisterScreen(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+                // Título principal
                 Text(
                     text = "Crear Cuenta",
                     style = MaterialTheme.typography.headlineLarge,
@@ -64,7 +69,7 @@ fun RegisterScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Campo de correo
+                // Campo de correo electrónico
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -90,6 +95,7 @@ fun RegisterScreen(navController: NavController) {
                     singleLine = true,
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
+                        // Icono para mostrar/ocultar contraseña
                         val icon = if (passwordVisible) R.drawable.ocultar_icono else R.drawable.mostrar_icono
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Image(
@@ -114,6 +120,7 @@ fun RegisterScreen(navController: NavController) {
                     singleLine = true,
                     visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
+                        // Icono para mostrar/ocultar confirmación de contraseña
                         val icon = if (confirmPasswordVisible) R.drawable.ocultar_icono else R.drawable.mostrar_icono
                         IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                             Image(
@@ -131,8 +138,10 @@ fun RegisterScreen(navController: NavController) {
                     onClick = {
                         if (email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()) {
                             if (password == confirmPassword) {
+                                // Llamar a la función de registro si las contraseñas coinciden
                                 registerUser(email, password, auth, context, navController)
                             } else {
+                                // Mostrar mensaje si las contraseñas no coinciden
                                 Toast.makeText(
                                     context,
                                     "Las contraseñas no coinciden",
@@ -140,6 +149,7 @@ fun RegisterScreen(navController: NavController) {
                                 ).show()
                             }
                         } else {
+                            // Mostrar mensaje si hay campos vacíos
                             Toast.makeText(context, "Debes rellenar todos los campos", Toast.LENGTH_SHORT).show()
                         }
                     },
@@ -147,14 +157,14 @@ fun RegisterScreen(navController: NavController) {
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)) // Color del botón
                 ) {
                     Text("Registrar", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Enlace a inicio de sesión
+                // Enlace para navegar a la pantalla de inicio de sesión
                 TextButton(onClick = { navController.navigate("login") }) {
                     Text(
                         text = "¿Ya tienes cuenta? Inicia Sesión",
@@ -168,6 +178,7 @@ fun RegisterScreen(navController: NavController) {
     }
 }
 
+// Función para registrar al usuario con Firebase
 fun registerUser(
     email: String,
     password: String,
@@ -178,11 +189,13 @@ fun registerUser(
     auth.createUserWithEmailAndPassword(email, password)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
+                // Mostrar mensaje de éxito y navegar al inicio de sesión
                 Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show()
                 navController.navigate("login") {
-                    popUpTo("register") { inclusive = true }
+                    popUpTo("register") { inclusive = true } // Eliminar pantalla de registro del stack
                 }
             } else {
+                // Mostrar mensaje de error
                 Toast.makeText(
                     context,
                     "Error: ${task.exception?.message}",

@@ -22,9 +22,11 @@ import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun WelcomeScreen(navController: NavController) {
+    // Obtener contexto y referencia a FirebaseAuth
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
 
+    // Pantalla principal con fondo oscuro
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color(0xFF121212) // Fondo oscuro para mejor contraste
@@ -36,13 +38,13 @@ fun WelcomeScreen(navController: NavController) {
         ) {
             // Imagen de fondo
             Image(
-                painter = painterResource(id = R.drawable.inicio_fondo),
+                painter = painterResource(id = R.drawable.fondocolor),
                 contentDescription = "Fondo",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
 
-            // Contenido principal
+            // Contenido principal en columna
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -59,7 +61,7 @@ fun WelcomeScreen(navController: NavController) {
                         .padding(bottom = 16.dp)
                 )
 
-                // Título principal
+                // Título principal de bienvenida
                 Text(
                     text = "¡Diversión en Familia!\nBienvenido a Happyland",
                     fontSize = 26.sp,
@@ -71,50 +73,53 @@ fun WelcomeScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Botón "¡Regístrate!"
+                // Botón para registrarse
                 Button(
-                    onClick = { navController.navigate("register") },
+                    onClick = { navController.navigate("register") }, // Navegar a la pantalla de registro
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)) // Verde
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)) // Color verde
                 ) {
                     Text(text = "¡Regístrate!", fontSize = 18.sp, color = Color.White)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Botón "Inicia sesión"
+                // Botón para iniciar sesión
                 Button(
-                    onClick = { navController.navigate("login") },
+                    onClick = { navController.navigate("login") }, // Navegar a la pantalla de inicio de sesión
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)) // Azul
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)) // Color azul
                 ) {
                     Text(text = "Inicia Sesión", fontSize = 18.sp, color = Color.White)
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Verificar sesión activa (opcional)
+                // Botón para verificar si hay sesión activa
                 TextButton(onClick = {
                     val currentUser = auth.currentUser
                     if (currentUser != null) {
+                        // Si hay una sesión activa, mostrar un mensaje y redirigir al home
                         Toast.makeText(
                             context,
                             "Sesión activa como ${currentUser.email}",
                             Toast.LENGTH_SHORT
                         ).show()
                         navController.navigate("home") {
-                            popUpTo("welcome") { inclusive = true }
+                            popUpTo("welcome") { inclusive = true } // Limpiar la pila de navegación
                         }
                     } else {
+                        // Mostrar un mensaje si no hay sesión activa
                         Toast.makeText(context, "No hay sesión activa", Toast.LENGTH_SHORT).show()
                     }
                 }) {
+                    // Texto para informar sobre la sesión activa
                     Text(
                         text = "¿Ya tienes sesión activa?",
                         fontSize = 16.sp,

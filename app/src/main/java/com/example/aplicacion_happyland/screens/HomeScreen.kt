@@ -37,28 +37,32 @@ import java.text.NumberFormat
 fun HomeScreen(
     navController: NavHostController,
     cardNumber: String? = null,
-    onAddCardClick: () -> Unit
+    onAddCardClick: () -> Unit,
+    onLogoutClick: () -> Unit
 ) {
+    // Estado del Drawer (Menú lateral)
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
 
-    // Estados para datos de la tarjeta
+    // Estados para la información de la tarjeta
     var userName by remember { mutableStateOf("Desconocido") }
     var userLastName by remember { mutableStateOf("Desconocido") }
-    var saldoEfectivo by remember { mutableStateOf(0) }
-    var saldoBonus by remember { mutableStateOf(0) }
-    var tickets by remember { mutableStateOf(0) }
-    var tokens by remember { mutableStateOf(0) }
+    var saldoEfectivo by remember { mutableIntStateOf(0) }
+    var saldoBonus by remember { mutableIntStateOf(0) }
+    var tickets by remember { mutableIntStateOf(0) }
+    var tokens by remember { mutableIntStateOf(0) }
     var isLoading by remember { mutableStateOf(cardNumber != null) }
 
+    // Instancia de Firebase Firestore y contexto
     val db = FirebaseFirestore.getInstance()
     val context = LocalContext.current
 
-    // Buscar tarjeta en Firebase
+    // Cargar los datos de la tarjeta desde Firebase al iniciar
     LaunchedEffect(cardNumber) {
         if (!cardNumber.isNullOrEmpty()) {
             isLoading = true
             try {
+                // Buscar datos de la tarjeta
                 val snapshot = db.collection("tarjetas").whereEqualTo("codigo", cardNumber).get().await()
                 if (snapshot.isEmpty) {
                     Toast.makeText(context, "Tarjeta no encontrada", Toast.LENGTH_SHORT).show()
@@ -81,16 +85,19 @@ fun HomeScreen(
         }
     }
 
+    // Contenedor principal con Drawer y AppBar
     ModalNavigationDrawer(
         drawerState = drawerState,
-        drawerContent = { DrawerContent() }
+        drawerContent = { DrawerContent(navController, onLogoutClick) }
     ) {
         if (isLoading) {
+            // Mostrar un indicador de carga mientras se obtienen los datos
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         } else {
             Scaffold(
+                // AppBar superior
                 topBar = {
                     TopAppBar(
                         title = {
@@ -117,18 +124,20 @@ fun HomeScreen(
                 ) {
                     // Fondo de pantalla
                     Image(
-                        painter = painterResource(id = R.drawable.general_fondo),
+                        painter = painterResource(id = R.drawable.fondocolor),
                         contentDescription = "Fondo de pantalla",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
 
+                    // Contenido principal
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
                             .padding(16.dp)
                     ) {
+                        // Sección de detalles de la tarjeta
                         CardDetailsSection(
                             cardNumber = cardNumber ?: "0000-0000-0000-0000",
                             userName = "$userName $userLastName",
@@ -139,11 +148,33 @@ fun HomeScreen(
                             onAddCardClick = onAddCardClick
                         )
                         Spacer(modifier = Modifier.height(16.dp))
+
+                        // Sección de cumpleaños
                         BirthdaySection(navController)
                         Spacer(modifier = Modifier.height(16.dp))
+
+                        // Opciones de compra de tickets
                         TicketPurchaseOptions()
                         Spacer(modifier = Modifier.height(16.dp))
+
+                        // Carrusel de recargas exclusivas
                         ExclusiveRechargeCarousel()
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Botón para ver premios
+                        Button(
+                            onClick = {
+                                if (cardNumber != null) {
+                                    navController.navigate("prizesScreen/$cardNumber/$tickets")
+                                } else {
+                                    Toast.makeText(context, "Tarjeta no detectada. Agrega una primero.", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Ver Premios", color = Color.White, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
@@ -151,6 +182,7 @@ fun HomeScreen(
     }
 }
 
+// Sección para mostrar detalles de la tarjeta
 @Composable
 fun CardDetailsSection(
     cardNumber: String,
@@ -207,22 +239,7 @@ fun CardDetailsSection(
     }
 }
 
-@Composable
-fun DrawerContent() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Gray)
-            .padding(16.dp)
-    ) {
-        Text("Perfil", color = Color.White, fontSize = 20.sp, modifier = Modifier.clickable { /* Navegar a perfil */ })
-        Spacer(modifier = Modifier.height(8.dp))
-        Text("Configuración", color = Color.White, fontSize = 20.sp, modifier = Modifier.clickable { /* Navegar a configuración */ })
-        Spacer(modifier = Modifier.height(8.dp))
-        Text("Cerrar Sesión", color = Color.White, fontSize = 20.sp, modifier = Modifier.clickable { /* Cerrar sesión */ })
-    }
-}
-
+// Sección para mostrar opciones relacionadas con cumpleaños
 @Composable
 fun BirthdaySection(navController: NavHostController) {
     Box(
@@ -242,6 +259,7 @@ fun BirthdaySection(navController: NavHostController) {
     }
 }
 
+// Carrusel para mostrar opciones exclusivas de recarga
 @Composable
 fun ExclusiveRechargeCarousel() {
     val rechargeOptions = listOf(
@@ -276,6 +294,7 @@ fun ExclusiveRechargeCarousel() {
     }
 }
 
+// Opciones de compra de tickets
 @Composable
 fun TicketPurchaseOptions() {
     Column(
@@ -290,3 +309,29 @@ fun TicketPurchaseOptions() {
         Text("1000 e-tickets - $4.500", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Blue)
     }
 }
+
+@Composable
+fun DrawerContent(navController: NavHostController, onLogoutClick: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Gray)
+            .padding(16.dp)
+    ) {
+        Text("Perfil", color = Color.White, fontSize = 20.sp, modifier = Modifier.clickable { /* Navegar a perfil */ })
+        Spacer(modifier = Modifier.height(8.dp))
+        Text("Configuración", color = Color.White, fontSize = 20.sp, modifier = Modifier.clickable { /* Navegar a configuración */ })
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Cerrar Sesión",
+            color = Color.White,
+            fontSize = 20.sp,
+            modifier = Modifier.clickable { onLogoutClick() }
+        )
+    }
+}
+
+
+
+
+

@@ -11,7 +11,6 @@ android {
     defaultConfig {
         applicationId = "com.example.aplicacion_happyland"
         minSdk = 24
-        //noinspection OldTargetApi
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -52,18 +51,35 @@ android {
 }
 
 dependencies {
-
+    // Core dependencies
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+
+    // Compose dependencies
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+    // Navigation dependencies
     implementation(libs.androidx.navigation.runtime.ktx)
-    implementation(libs.firebase.auth.ktx)
     implementation(libs.androidx.navigation.compose)
+
+    // Firebase dependencies
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.firestore.ktx)
+
+    // ZXing for QR Code scanning
+    implementation(libs.zxing.android.embedded)
+
+    // Coil for image loading
+    implementation(libs.coil.compose) // Actualizado para soporte de imágenes en Compose
+
+    // Testing dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -72,19 +88,10 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics)
-    
+    // Play services
+    implementation(libs.play.services.auth)
 
-    implementation (libs.firebase.firestore.ktx)
-    implementation (libs.zxing.android.embedded)
-    implementation (libs.core)
-    implementation (libs.androidx.core.ktx.v1150)
-    implementation (libs.firebase.auth)
-    implementation (libs.play.services.auth)
-    implementation(platform(libs.firebase.bom.v3360))
-    implementation (libs.androidx.lifecycle.runtime.ktx.v287)
-    }
-
-
-
+    // Additional dependencies
+    implementation(libs.androidx.core.ktx.v1150)
+    implementation(libs.androidx.lifecycle.runtime.ktx.v287)
+}
