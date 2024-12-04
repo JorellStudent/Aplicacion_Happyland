@@ -4,6 +4,20 @@
 
 ---
 
+# Índice 📑
+
+1. [Happyland App 🎢](#happyland-app-)
+2. [Características principales 📱](#características-principales-)
+3. [Tecnologías utilizadas 🔧💻](#tecnologías-utilizadas-)
+4. [Estructura del Proyecto 📂](#estructura-del-proyecto-)
+    - [Screens](#screens)
+    - [Models](#models)
+    - [Utils](#utils)
+5. [Instalación y configuración 🚀](#instalación-y-configuración-)
+6. [Vista Previa 📸](#vista-previa-)
+
+---
+
 ## Características principales 📱
 
 - **Gestión de Tarjetas**: Agrega tarjetas NFC o manualmente, consulta saldos y detalles.
