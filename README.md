@@ -79,13 +79,17 @@
    - Ejecutar en un emulador o dispositivo físico.
      
 6. **Vista Previa**:
-   - ![image](https://github.com/user-attachments/assets/546fe716-7bb0-4fa4-8db1-7b45135c1a05)
-   - ![image](https://github.com/user-attachments/assets/ab38be86-5fed-4675-98f7-ad7dbf4a980d)
-   - ![image](https://github.com/user-attachments/assets/48720496-9f27-4938-871e-6de691a88bc3)
-   - ![image](https://github.com/user-attachments/assets/bf217e99-3097-468e-8f25-294374bd2d63)
-   - ![image](https://github.com/user-attachments/assets/44c200f8-a6ed-4282-be0e-5e06994cf8ac)
-   - ![image](https://github.com/user-attachments/assets/e64bedab-f06c-403f-9443-a819c8193b6f)
-   - ![image](https://github.com/user-attachments/assets/c8300f84-23b2-448b-9dd4-c47090dbd0e5)
+| ![image](https://github.com/user-attachments/assets/546fe716-7bb0-4fa4-8db1-7b45135c1a05) | ![image](https://github.com/user-attachments/assets/ab38be86-5fed-4675-98f7-ad7dbf4a980d) | ![image](https://github.com/user-attachments/assets/48720496-9f27-4938-871e-6de691a88bc3) |
+|--------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| Imagen 1                                                                                   | Imagen 2                                                                                   | Imagen 3                                                                                   |
+
+| ![image](https://github.com/user-attachments/assets/bf217e99-3097-468e-8f25-294374bd2d63) | ![image](https://github.com/user-attachments/assets/44c200f8-a6ed-4282-be0e-5e06994cf8ac) | ![image](https://github.com/user-attachments/assets/e64bedab-f06c-403f-9443-a819c8193b6f) |
+|--------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| Imagen 4                                                                                   | Imagen 5                                                                                   | Imagen 6                                                                                   |
+
+| ![image](https://github.com/user-attachments/assets/c8300f84-23b2-448b-9dd4-c47090dbd0e5) |
+|--------------------------------------------------------------------------------------------|
+| Imagen 7                                                                                   |
 
 
 
